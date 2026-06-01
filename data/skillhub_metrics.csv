@@ -1,2 +1,2 @@
-date,slug,display_name,version,tag_latest,downloads,downloads_delta,installs,installs_delta,stars,comments,versions,keen_status,sanbu_status,security_notes,notes
-2026-06-01,dknowc-official-doc-writer-skillhub,深知写作助手,3.0.10,3.0.10,292,,22,,0,0,5,benign,benign,安全，无风险; 安全，无风险,owner=user_c9faff27; updated_at=2026-06-01T02:08:19.159Z; latest_created_at=2026-05-27T10:19:00.040Z
+date,slug,display_name,version,tag_latest,downloads,installs,stars,comments,versions,keen_status,sanbu_status,keen_status_text,sanbu_status_text,owner_handle,updated_at,latest_created_at
+2026-06-01,dknowc-official-doc-writer-skillhub,深知写作助手,3.0.10,3.0.10,296,22,0,0,5,benign,benign,安全，无风险,安全，无风险,user_c9faff27,2026-06-01T08:38:19.506Z,2026-05-27T10:19:00.040Z

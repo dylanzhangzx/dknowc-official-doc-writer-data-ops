@@ -7,7 +7,6 @@
 - `data/clawhub_skill_metrics.csv`: Clawhub skill 下载、安装、收藏、版本和审核状态。
 - `data/skillhub_metrics.csv`: SkillHub 下载、安装、收藏、版本和安全审核状态。
 - `data/github_metrics.csv`: GitHub 开源仓库 stars、forks、watchers、issues、PR 和 release 状态。
-- `data/ops_events.csv`: 关键运营事件、采集失败和暂未自动化渠道记录。
 
 ## 更新方式
 
@@ -21,6 +20,6 @@ npm run update:metrics
 
 ## 说明
 
-Clawhub 的 `downloads_delta` 和 `installs_all_time_delta`、SkillHub 的 `downloads_delta` 和 `installs_delta` 会根据上一条历史记录自动计算。第一次采集时增量为空。
+数据表只记录各平台接口可直接获取的字段，以及本次采集日期；不在基础采集表中计算每日增量或写入人工备注。
 
-华为、火山等渠道如果没有稳定公开统计接口，先在 `ops_events.csv` 中记录人工观察或后续接入结果。
+华为、火山等渠道如果没有稳定公开统计接口，暂不纳入自动采集表。

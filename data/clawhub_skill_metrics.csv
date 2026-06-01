@@ -1,2 +1,2 @@
-date,slug,display_name,version,downloads,downloads_delta,installs_all_time,installs_all_time_delta,installs_current,stars,comments,versions,moderation_status,moderation_reason,moderation_updated_at,notes
-2026-06-01,dknowc-official-doc-writer,深知写作助手,3.0.11,604,,1,,0,1,0,8,,,,owner=dylanzhangzx; updated_at=2026-05-28T01:09:40.483Z
+date,slug,display_name,version,downloads,installs_all_time,installs_current,stars,comments,versions,moderation_status,moderation_reason,moderation_updated_at,owner_handle,updated_at
+2026-06-01,dknowc-official-doc-writer,深知写作助手,3.0.11,612,1,0,1,0,8,,,,dylanzhangzx,2026-05-28T01:09:40.483Z

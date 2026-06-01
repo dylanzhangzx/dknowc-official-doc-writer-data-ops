@@ -88,28 +88,6 @@ async function readCsv(fileName) {
   return parseCsv(await readFile(filePath, "utf8"));
 }
 
-function rowToObject(header, row) {
-  return Object.fromEntries(header.map((column, index) => [column, row[index] ?? ""]));
-}
-
-async function latestPreviousRow(fileName, todayDate) {
-  const rows = await readCsv(fileName);
-  if (rows.length <= 1) return null;
-  const header = rows[0];
-  const candidates = rows.slice(1).filter((row) => row[0] !== todayDate);
-  if (candidates.length === 0) return null;
-  return rowToObject(header, candidates.at(-1));
-}
-
-function delta(current, previous) {
-  if (current === "" || current === undefined || current === null) return "";
-  if (previous === "" || previous === undefined || previous === null) return "";
-  const currentNumber = Number(current);
-  const previousNumber = Number(previous);
-  if (!Number.isFinite(currentNumber) || !Number.isFinite(previousNumber)) return "";
-  return currentNumber - previousNumber;
-}
-
 async function upsertCsv(fileName, rowObject) {
   const filePath = path.join(DATA_DIR, fileName);
   const rows = await readCsv(fileName);
@@ -122,14 +100,6 @@ async function upsertCsv(fileName, rowObject) {
   const row = header.map((column) => csvEscape(rowObject[column]));
   const output = [header.join(","), ...dataRows.map((items) => items.map(csvEscape).join(",")), row.join(",")].join("\n") + "\n";
   await writeFile(filePath, output, "utf8");
-}
-
-async function appendEvent(event) {
-  const fileName = "ops_events.csv";
-  const rows = await readCsv(fileName);
-  const header = rows[0];
-  const row = header.map((column) => csvEscape(event[column]));
-  await writeFile(path.join(DATA_DIR, fileName), `${rows.map((items) => items.map(csvEscape).join(",")).join("\n")}\n${row.join(",")}\n`, "utf8");
 }
 
 async function fetchJson(url, options = {}) {
@@ -167,16 +137,13 @@ async function fetchClawhubSkill() {
   const latestVersion = data.latestVersion ?? {};
   const moderation = data.moderation ?? {};
   const stats = skill.stats ?? {};
-  const previous = await latestPreviousRow("clawhub_skill_metrics.csv", today);
 
   return {
     slug: skill.slug ?? TARGETS.clawhubSkill,
     display_name: skill.displayName ?? "",
     version: latestVersion.version ?? skill.tags?.latest ?? "",
     downloads: stats.downloads ?? "",
-    downloads_delta: delta(stats.downloads, previous?.downloads),
     installs_all_time: stats.installsAllTime ?? "",
-    installs_all_time_delta: delta(stats.installsAllTime, previous?.installs_all_time),
     installs_current: stats.installsCurrent ?? "",
     stars: stats.stars ?? "",
     comments: stats.comments ?? "",
@@ -184,7 +151,8 @@ async function fetchClawhubSkill() {
     moderation_status: moderation.status ?? "",
     moderation_reason: moderation.reason ?? "",
     moderation_updated_at: moderation.updatedAt ? new Date(moderation.updatedAt).toISOString() : "",
-    notes: `owner=${data.owner?.handle ?? ""}; updated_at=${skill.updatedAt ? new Date(skill.updatedAt).toISOString() : ""}`,
+    owner_handle: data.owner?.handle ?? "",
+    updated_at: skill.updatedAt ? new Date(skill.updatedAt).toISOString() : "",
   };
 }
 
@@ -195,7 +163,6 @@ async function fetchSkillhubSkill() {
   const stats = skill.stats ?? {};
   const keen = data.securityReports?.keen ?? {};
   const sanbu = data.securityReports?.sanbu ?? {};
-  const previous = await latestPreviousRow("skillhub_metrics.csv", today);
 
   return {
     slug: skill.slug ?? TARGETS.skillhubSkill,
@@ -203,16 +170,17 @@ async function fetchSkillhubSkill() {
     version: latestVersion.version ?? skill.tags?.latest ?? "",
     tag_latest: skill.tags?.latest ?? "",
     downloads: stats.downloads ?? "",
-    downloads_delta: delta(stats.downloads, previous?.downloads),
     installs: stats.installs ?? "",
-    installs_delta: delta(stats.installs, previous?.installs),
     stars: stats.stars ?? "",
     comments: stats.comments ?? "",
     versions: stats.versions ?? "",
     keen_status: keen.status ?? "",
     sanbu_status: sanbu.status ?? "",
-    security_notes: [keen.statusText, sanbu.statusText].filter(Boolean).join("; "),
-    notes: `owner=${data.owner?.handle ?? ""}; updated_at=${skill.updatedAt ? new Date(skill.updatedAt).toISOString() : ""}; latest_created_at=${latestVersion.createdAt ? new Date(latestVersion.createdAt).toISOString() : ""}`,
+    keen_status_text: keen.statusText ?? "",
+    sanbu_status_text: sanbu.statusText ?? "",
+    owner_handle: data.owner?.handle ?? "",
+    updated_at: skill.updatedAt ? new Date(skill.updatedAt).toISOString() : "",
+    latest_created_at: latestVersion.createdAt ? new Date(latestVersion.createdAt).toISOString() : "",
   };
 }
 
@@ -241,21 +209,17 @@ async function fetchGitHub() {
     latestRelease = "none";
   }
 
-  const previous = await latestPreviousRow("github_metrics.csv", today);
-
   return {
     repo: TARGETS.githubRepo,
     stars: repo.stargazers_count,
-    stars_delta: delta(repo.stargazers_count, previous?.stars),
     forks: repo.forks_count,
-    forks_delta: delta(repo.forks_count, previous?.forks),
     watchers: repo.subscribers_count ?? repo.watchers_count ?? "",
-    watchers_delta: delta(repo.subscribers_count ?? repo.watchers_count, previous?.watchers),
     open_issues: issues.total_count,
     open_prs: prs.total_count,
     latest_release: latestRelease,
     default_branch: repo.default_branch,
-    notes: `visibility=${repo.visibility}; pushed_at=${repo.pushed_at}`,
+    visibility: repo.visibility,
+    pushed_at: repo.pushed_at,
   };
 }
 
@@ -276,15 +240,6 @@ async function main() {
   }
 
   if (failures.length > 0) {
-    await appendEvent({
-      date: today,
-      type: "metrics-fetch",
-      platform: "automation",
-      title: "Daily skill metrics fetch failed",
-      url: "",
-      status: "failed",
-      notes: failures.join(" | "),
-    });
     throw new Error(failures.join("; "));
   }
 
