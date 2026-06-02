@@ -16,7 +16,7 @@
 npm run update:metrics
 ```
 
-每日定时更新建议沿用外部 cronjob 触发 GitHub Actions 的方式，不使用 GitHub 自带 schedule。
+每日定时更新使用外部 cronjob 触发 GitHub Actions，不使用 GitHub 自带 `schedule`；也可以通过 `workflow_dispatch` 手动触发。
 
 ## 说明
 
